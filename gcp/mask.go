@@ -1,33 +1,31 @@
+package gcp
+
 import (
 	"context"
 	"fmt"
-	"io"
 
 	dlp "cloud.google.com/go/dlp/apiv2"
 	"cloud.google.com/go/dlp/apiv2/dlppb"
+	"github.com/mokoshin0720/mask-pii/gcp/config"
+	"google.golang.org/api/option"
 )
 
 // mask deidentifies the input by masking all provided info types with maskingCharacter
 // and prints the result to w.
-func mask(w io.Writer, projectID, input string, infoTypeNames []string, maskingCharacter string, numberToMask int32) error {
-	// projectID := "my-project-id"
-	// input := "My SSN is 111222333"
-	// infoTypeNames := []string{"US_SOCIAL_SECURITY_NUMBER"}
-	// maskingCharacter := "+"
-	// numberToMask := 6
-	// Will print "My SSN is ++++++333"
-
+func Mask(projectID, input string, infoTypeNames []string, maskingCharacter string, numberToMask int32) (string, error) {
 	ctx := context.Background()
-	client, err := dlp.NewClient(ctx)
+	client, err := dlp.NewClient(ctx, option.WithAPIKey(config.Config.GcpApiKey))
 	if err != nil {
-		return fmt.Errorf("dlp.NewClient: %w", err)
+		return "", fmt.Errorf("dlp.NewClient: %w", err)
 	}
 	defer client.Close()
+
 	// Convert the info type strings to a list of InfoTypes.
 	var infoTypes []*dlppb.InfoType
 	for _, it := range infoTypeNames {
 		infoTypes = append(infoTypes, &dlppb.InfoType{Name: it})
 	}
+
 	// Create a configured request.
 	req := &dlppb.DeidentifyContentRequest{
 		Parent: fmt.Sprintf("projects/%s/locations/global", projectID),
@@ -60,12 +58,12 @@ func mask(w io.Writer, projectID, input string, infoTypeNames []string, maskingC
 			},
 		},
 	}
+
 	// Send the request.
 	r, err := client.DeidentifyContent(ctx, req)
 	if err != nil {
-		return fmt.Errorf("DeidentifyContent: %w", err)
+		return "", fmt.Errorf("DeidentifyContent: %w", err)
 	}
-	// Print the result.
-	fmt.Fprint(w, r.GetItem().GetValue())
-	return nil
+
+	return r.GetItem().GetValue(), nil
 }
