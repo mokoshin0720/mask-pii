@@ -13,7 +13,7 @@ func main() {
 		return
 	}
 
-	result, err := gcp.Mask("My SSN is 111222333", []string{"US_SOCIAL_SECURITY_NUMBER"})
+	result, err := gcp.Mask(config.Config.InputText)
 	if err != nil {
 		fmt.Printf("エラーが発生しました: %v\n", err)
 		return

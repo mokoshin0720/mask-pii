@@ -10,9 +10,8 @@ import (
 	"google.golang.org/api/option"
 )
 
-// mask deidentifies the input by masking all provided info types with maskingCharacter
-// and prints the result to w.
-func Mask(input string, infoTypeNames []string) (string, error) {
+// Mask inputで指定された文字列にinfoTypeNamesで指定された情報タイプのマスク処理を行う
+func Mask(input string) (string, error) {
 	ctx := context.Background()
 	client, err := dlp.NewClient(ctx, option.WithAPIKey(config.Config.GcpApiKey))
 	if err != nil {
@@ -20,17 +19,9 @@ func Mask(input string, infoTypeNames []string) (string, error) {
 	}
 	defer client.Close()
 
-	// Convert the info type strings to a list of InfoTypes.
-	var infoTypes []*dlppb.InfoType
-	for _, it := range infoTypeNames {
-		infoTypes = append(infoTypes, &dlppb.InfoType{Name: it})
-	}
-
 	// Create a configured request.
 	req := &dlppb.DeidentifyContentRequest{
-		InspectConfig: &dlppb.InspectConfig{
-			InfoTypes: infoTypes,
-		},
+		InspectConfig: &dlppb.InspectConfig{}, // NOTE: 全ての情報タイプを検出対象とする
 		DeidentifyConfig: &dlppb.DeidentifyConfig{
 			Transformation: &dlppb.DeidentifyConfig_InfoTypeTransformations{
 				InfoTypeTransformations: &dlppb.InfoTypeTransformations{
@@ -47,7 +38,6 @@ func Mask(input string, infoTypeNames []string) (string, error) {
 				},
 			},
 		},
-		// The item to analyze.
 		Item: &dlppb.ContentItem{
 			DataItem: &dlppb.ContentItem_Value{
 				Value: input,
@@ -55,7 +45,6 @@ func Mask(input string, infoTypeNames []string) (string, error) {
 		},
 	}
 
-	// Send the request.
 	r, err := client.DeidentifyContent(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("DeidentifyContent: %w", err)

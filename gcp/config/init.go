@@ -9,6 +9,7 @@ var Config config
 
 type config struct {
 	GcpApiKey string `env:"GCP_API_KEY,notEmpty"`
+	InputText string `env:"INPUT_TEXT,notEmpty"`
 }
 
 func Init() error {
