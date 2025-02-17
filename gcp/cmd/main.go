@@ -13,10 +13,11 @@ func main() {
 		return
 	}
 
-	result, err := gcp.Mask("my-project-id", "My SSN is 111222333", []string{"US_SOCIAL_SECURITY_NUMBER"}, "+", 6)
+	result, err := gcp.Mask("My SSN is 111222333", []string{"US_SOCIAL_SECURITY_NUMBER"})
 	if err != nil {
 		fmt.Printf("エラーが発生しました: %v\n", err)
 		return
 	}
+
 	fmt.Printf("マスク処理結果: %s\n", result)
 }

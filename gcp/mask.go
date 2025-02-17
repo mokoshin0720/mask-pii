@@ -12,7 +12,7 @@ import (
 
 // mask deidentifies the input by masking all provided info types with maskingCharacter
 // and prints the result to w.
-func Mask(projectID, input string, infoTypeNames []string, maskingCharacter string, numberToMask int32) (string, error) {
+func Mask(input string, infoTypeNames []string) (string, error) {
 	ctx := context.Background()
 	client, err := dlp.NewClient(ctx, option.WithAPIKey(config.Config.GcpApiKey))
 	if err != nil {
@@ -28,7 +28,6 @@ func Mask(projectID, input string, infoTypeNames []string, maskingCharacter stri
 
 	// Create a configured request.
 	req := &dlppb.DeidentifyContentRequest{
-		Parent: fmt.Sprintf("projects/%s/locations/global", projectID),
 		InspectConfig: &dlppb.InspectConfig{
 			InfoTypes: infoTypes,
 		},
@@ -40,10 +39,7 @@ func Mask(projectID, input string, infoTypeNames []string, maskingCharacter stri
 							InfoTypes: []*dlppb.InfoType{}, // Match all info types.
 							PrimitiveTransformation: &dlppb.PrimitiveTransformation{
 								Transformation: &dlppb.PrimitiveTransformation_CharacterMaskConfig{
-									CharacterMaskConfig: &dlppb.CharacterMaskConfig{
-										MaskingCharacter: maskingCharacter,
-										NumberToMask:     numberToMask,
-									},
+									CharacterMaskConfig: &dlppb.CharacterMaskConfig{},
 								},
 							},
 						},
